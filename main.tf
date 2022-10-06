@@ -28,7 +28,7 @@ resource "aws_internet_gateway" "prod-igw" { // allow vm to access internet
   }
 }
 
-resource "aws_route_table" "prod-public-crt" { // route traffic from subnet to internet gateway 
+resource "aws_route_table" "dev-rt-public" { // route traffic from subnet to internet gateway 
   vpc_id = aws_vpc.nginx-vpc.id
   route {
     cidr_block = "0.0.0.0/0" //associated subnet can reach everywhere
@@ -39,9 +39,9 @@ resource "aws_route_table" "prod-public-crt" { // route traffic from subnet to i
   }
 }
 
-resource "aws_route_table_association" "prod-crta-public-subnet-1" { // bridges the gap between a route table and a subnet 
+resource "aws_route_table_association" "rta-public" { // bridges the gap between a route table and a subnet 
   subnet_id      = aws_subnet.dev-subnet.id
-  route_table_id = aws_route_table.prod-public-crt.id
+  route_table_id = aws_route_table.dev-rt-public.id
 }
 
 resource "aws_security_group" "dev-sg" {
@@ -51,7 +51,7 @@ resource "aws_security_group" "dev-sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"                                     // all protocols
-    cidr_blocks = ["37.47.185.207/32", "212.146.63.50/32"] // 32 = only this ip 
+    cidr_blocks = ["37.47.187.125/32", "212.146.63.50/32"] // 32 = only this ip 
   }
 
   # ingress { // ssh
@@ -93,10 +93,11 @@ resource "aws_instance" "nginx_server" {
   vpc_security_group_ids = [aws_security_group.dev-sg.id]
   key_name               = aws_key_pair.aws-key.id
   user_data              = file("userdata.tpl")
-
+  
   tags = {
     Name = "nginx_server"
   }
+  
 
   # Setting up the ssh connection to install the nginx server
   connection {
